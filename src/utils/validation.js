@@ -1,3 +1,7 @@
+const normalizePhone = (phone) => {
+  return phone.replace(/\D/g, "").replace(/^(?:0098|98)/, "0");
+};
+
 const validation = (name, value) => {
   switch (name) {
     case "fullName":
@@ -11,9 +15,8 @@ const validation = (name, value) => {
       return "";
     case "phone": {
       if (!value.trim()) return "Phone number is required";
-      const phoneRegex = /^(?:(?:\+|00)98|98|0)?9\d{9}$/;
-      const normalizedPhone = value.replace(/[\s()-]/g, "");
-      if (!phoneRegex.test(normalizedPhone))
+      const normalizedPhone = normalizePhone(value);
+      if (!/^09\d{9}$/.test(normalizedPhone))
         return "Enter a valid Iranian mobile number";
       return "";
     }
@@ -24,15 +27,15 @@ const validation = (name, value) => {
 
 const validateNoRepeat = (name, value, selectedContact) => {
   if (name === "phone" && value.trim()) {
-    const isDuplicate = JSON.parse(
-      localStorage.getItem("contacts") || "[]",
-    ).some(
+    const contacts = JSON.parse(localStorage.getItem("contacts") || "[]");
+    const normalizedValue = normalizePhone(value);
+    const isDuplicate = contacts.some(
       (contact) =>
-        contact.phone === value && contact.id !== selectedContact?.id,
+        normalizePhone(contact.phone) === normalizedValue &&
+        contact.id !== selectedContact?.id,
     );
     return isDuplicate ? "This phone is already in use." : "";
   }
   return "";
 };
-
-export { validation, validateNoRepeat };
+export { validation, validateNoRepeat, normalizePhone };
